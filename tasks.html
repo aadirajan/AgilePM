@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Tasks — AgilePM</title>
+  <link rel="stylesheet" href="../styles.css" />
+</head>
+<body>
+
+<div class="app-shell" id="app-shell">
+  <div class="page-body" id="page-content">
+    <div class="page-header fade-up">
+      <div class="page-header-left">
+        <h1 class="page-title">Tasks</h1>
+        <p class="page-subtitle">All tasks across active projects and sprints</p>
+      </div>
+      <div class="page-header-right">
+        <button class="btn btn-secondary" id="filter-btn">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
+          Filters
+        </button>
+        <button class="btn btn-primary" onclick="AgilePM.openNewTaskModal()">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          New Task
+        </button>
+      </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="task-filters fade-up fade-up-1" id="filter-chips"></div>
+
+    <!-- Stats Row -->
+    <div class="stats-grid fade-up fade-up-1" id="task-stats" style="margin-bottom:20px;"></div>
+
+    <!-- Tasks Table -->
+    <div class="card fade-up fade-up-2">
+      <div class="card-header">
+        <div>
+          <div class="card-title">All Tasks</div>
+          <div class="card-subtitle" id="task-count-label">Showing 24 tasks</div>
+        </div>
+        <div style="display:flex;gap:8px;align-items:center;">
+          <div class="search-bar" style="width:180px;">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            <input type="text" placeholder="Filter tasks…" id="task-search" />
+          </div>
+          <select class="input btn-sm" id="sort-select" style="padding:6px 10px;min-width:120px;">
+            <option value="priority">Priority</option>
+            <option value="status">Status</option>
+            <option value="project">Project</option>
+          </select>
+        </div>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th style="width:32px;">
+                <input type="checkbox" id="select-all" style="accent-color:var(--accent);" />
+              </th>
+              <th>Task</th>
+              <th>Project</th>
+              <th>Assignee</th>
+              <th>Priority</th>
+              <th>Status</th>
+              <th>Due</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="tasks-body"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="../components/components.js"></script>
+<script>
+AgilePM.initShell({
+  title: 'Tasks',
+  breadcrumb: [{ label: 'Workspace' }, { label: 'Tasks' }]
+});
+
+// Stats
+document.getElementById('task-stats').innerHTML = [
+  { value:'27',  label:'Open Tasks',    icon: AgilePM.icons.tasks,    colorClass:'yellow', trend:-5, trendLabel:'vs last week' },
+  { value:'5',   label:'In Progress',   icon: AgilePM.icons.sprints,  colorClass:'accent', trend: null },
+  { value:'4',   label:'Blockers',      icon: AgilePM.icons.dashboard,colorClass:'red',    trend: null },
+  { value:'89',  label:'Done This Month',icon:AgilePM.icons.tasks,    colorClass:'green',  trend:22, trendLabel:'vs last month' },
+].map((s,i) => AgilePM.buildStatCard({ ...s, delay:`fade-up-${i+1}` })).join('');
+
+// Filter chips
+const filters = ['All', 'My Tasks', 'High Priority', 'Unassigned', 'Blocked', 'Due Soon'];
+let activeFilter = 'All';
+const filtersEl = document.getElementById('filter-chips');
+
+function renderFilters() {
+  filtersEl.innerHTML = filters.map(f => `
+    <button class="filter-chip ${activeFilter === f ? 'active' : ''}" data-filter="${f}">${f}</button>
+  `).join('');
+  filtersEl.querySelectorAll('.filter-chip').forEach(btn => {
+    btn.addEventListener('click', () => {
+      activeFilter = btn.dataset.filter;
+      renderFilters();
+      renderTasks();
+    });
+  });
+}
+
+// Data
+const tasks = [
+  { id:'AT-142', title:'Design token system refresh',       project:'Atlas',   assignee:'JD', priority:'High',   status:'In Review',   due:'Feb 24', blocked: false },
+  { id:'MB-089', title:'Push notification deep linking',    project:'Mobile',  assignee:'AK', priority:'Medium', status:'In Progress', due:'Feb 26', blocked: false },
+  { id:'AT-138', title:'Redesign onboarding flow',          project:'Atlas',   assignee:'SP', priority:'High',   status:'Done',        due:'Feb 20', blocked: false },
+  { id:'DP-034', title:'Kafka consumer lag alerting',       project:'Data',    assignee:'MR', priority:'Low',    status:'To Do',       due:'Mar 01', blocked: true },
+  { id:'MB-091', title:'Offline mode sync logic',           project:'Mobile',  assignee:'JD', priority:'High',   status:'In Progress', due:'Feb 25', blocked: false },
+  { id:'AT-143', title:'Set up feature flag service',       project:'Atlas',   assignee:'TN', priority:'High',   status:'To Do',       due:'Feb 28', blocked: false },
+  { id:'AT-144', title:'Migrate auth to PKCE flow',         project:'Atlas',   assignee:'JD', priority:'High',   status:'To Do',       due:'Mar 03', blocked: true },
+  { id:'MB-092', title:'Build offline queue for mutations', project:'Mobile',  assignee:'AK', priority:'Medium', status:'To Do',       due:'Mar 02', blocked: false },
+  { id:'DP-035', title:'Write Kafka schema registry docs',  project:'Data',    assignee:'MR', priority:'Low',    status:'To Do',       due:'Mar 05', blocked: false },
+  { id:'AT-140', title:'SSO integration testing',           project:'Atlas',   assignee:'TN', priority:'High',   status:'In Review',   due:'Feb 24', blocked: false },
+  { id:'MB-088', title:'App store screenshots update',      project:'Mobile',  assignee:'JD', priority:'Low',    status:'In Review',   due:'Feb 23', blocked: false },
+  { id:'DS-012', title:'Document icon component API',       project:'Design',  assignee:'SP', priority:'Medium', status:'To Do',       due:'Mar 04', blocked: false },
+  { id:'AT-141', title:'Add multi-workspace support',       project:'Atlas',   assignee:'SP', priority:'Medium', status:'In Progress', due:'Feb 27', blocked: false },
+  { id:'IR-008', title:'Migrate staging to k8s',            project:'Infra',   assignee:'TN', priority:'High',   status:'To Do',       due:'Mar 08', blocked: true },
+  { id:'DP-033', title:'S3 sink connector config',          project:'Data',    assignee:'MR', priority:'Medium', status:'In Review',   due:'Feb 25', blocked: false },
+  { id:'DS-011', title:'Build color token playground',      project:'Design',  assignee:'JD', priority:'Low',    status:'To Do',       due:'Mar 06', blocked: false },
+  { id:'MB-090', title:'Implement swipe gesture nav',       project:'Mobile',  assignee:'AK', priority:'Medium', status:'In Progress', due:'Feb 27', blocked: false },
+  { id:'AT-145', title:'Update Stripe webhook handlers',    project:'Atlas',   assignee:'SP', priority:'Medium', status:'To Do',       due:'Mar 01', blocked: false },
+  { id:'IR-007', title:'Set up Prometheus + Grafana',       project:'Infra',   assignee:'TN', priority:'High',   status:'In Progress', due:'Feb 26', blocked: false },
+  { id:'AT-139', title:'Fix session expiry edge case',      project:'Atlas',   assignee:'JD', priority:'Medium', status:'Done',        due:'Feb 18', blocked: false },
+  { id:'DP-032', title:'Debezium connector setup',          project:'Data',    assignee:'MR', priority:'Medium', status:'Done',        due:'Feb 19', blocked: false },
+  { id:'DS-010', title:'Finalize spacing scale v2',         project:'Design',  assignee:'SP', priority:'Low',    status:'Done',        due:'Feb 17', blocked: false },
+  { id:'MB-086', title:'Dark mode implementation',          project:'Mobile',  assignee:'AK', priority:'High',   status:'Done',        due:'Feb 16', blocked: false },
+  { id:'AT-135', title:'Two-factor auth recovery codes',    project:'Atlas',   assignee:'SP', priority:'High',   status:'Done',        due:'Feb 14', blocked: false },
+];
+
+const priorityBadge  = p => AgilePM.buildBadge(p, {High:'red',Medium:'yellow',Low:'green'}[p]||'muted');
+const statusBadge    = s => AgilePM.buildBadge(s, {'Done':'green','In Progress':'blue','In Review':'purple','To Do':'muted'}[s]||'muted');
+const avatarColors   = { JD:'#6e6eff', AK:'#3dd68c', SP:'#f5a623', MR:'#f25f5c', TN:'#58a6ff' };
+
+function filterTasks(list) {
+  const search = document.getElementById('task-search')?.value.toLowerCase() || '';
+  return list.filter(t => {
+    const matchSearch = !search || t.title.toLowerCase().includes(search) || t.id.toLowerCase().includes(search);
+    let matchFilter = true;
+    if (activeFilter === 'My Tasks')     matchFilter = t.assignee === 'JD';
+    if (activeFilter === 'High Priority') matchFilter = t.priority === 'High';
+    if (activeFilter === 'Unassigned')   matchFilter = !t.assignee;
+    if (activeFilter === 'Blocked')      matchFilter = t.blocked;
+    if (activeFilter === 'Due Soon')     matchFilter = !['Done'].includes(t.status);
+    return matchSearch && matchFilter;
+  });
+}
+
+function renderTasks() {
+  const filtered = filterTasks(tasks);
+  document.getElementById('task-count-label').textContent = `Showing ${filtered.length} tasks`;
+
+  document.getElementById('tasks-body').innerHTML = filtered.length === 0
+    ? `<tr><td colspan="8"><div class="empty-state"><div class="empty-title">No tasks found</div><div class="empty-desc">Try adjusting your filters or search term.</div></div></td></tr>`
+    : filtered.map(t => `
+        <tr>
+          <td><input type="checkbox" style="accent-color:var(--accent);" /></td>
+          <td>
+            <div style="display:flex;align-items:center;gap:8px;">
+              ${t.blocked ? '<span title="Blocked" style="color:var(--red);font-size:12px;">⛔</span>' : ''}
+              <div>
+                <div style="font-family:var(--font-mono);font-size:10px;color:var(--text-muted);">${t.id}</div>
+                <div class="primary" style="max-width:300px;">${t.title}</div>
+              </div>
+            </div>
+          </td>
+          <td>${t.project}</td>
+          <td>
+            <div style="display:flex;align-items:center;gap:7px;">
+              <div class="task-assignee" style="background:${avatarColors[t.assignee]||'#888'}">${t.assignee}</div>
+              <span style="font-size:12px;color:var(--text-muted);">${t.assignee}</span>
+            </div>
+          </td>
+          <td>${priorityBadge(t.priority)}</td>
+          <td>${statusBadge(t.status)}</td>
+          <td style="font-size:12px;color:var(--text-muted);white-space:nowrap;">${t.due}</td>
+          <td>
+            <button class="btn btn-ghost btn-sm" onclick="AgilePM.showToast('${t.id}','${t.title}','info')">⋯</button>
+          </td>
+        </tr>
+    `).join('');
+}
+
+renderFilters();
+renderTasks();
+
+document.getElementById('task-search')?.addEventListener('input', renderTasks);
+document.getElementById('select-all')?.addEventListener('change', e => {
+  document.querySelectorAll('tbody input[type=checkbox]').forEach(cb => cb.checked = e.target.checked);
+});
+</script>
+</body>
+</html>

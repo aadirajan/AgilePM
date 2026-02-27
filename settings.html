@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Settings — AgilePM</title>
+  <link rel="stylesheet" href="../styles.css" />
+</head>
+<body>
+<div class="app-shell" id="app-shell">
+  <div class="page-body" id="page-content">
+    <div class="page-header fade-up">
+      <div class="page-header-left">
+        <h1 class="page-title">Settings</h1>
+        <p class="page-subtitle">Manage your workspace and account preferences</p>
+      </div>
+    </div>
+
+    <div class="main-side fade-up fade-up-1">
+      <!-- Settings nav -->
+      <div style="display:flex;flex-direction:column;gap:16px;">
+
+        <!-- Profile -->
+        <div class="card">
+          <div class="card-header"><div class="card-title">Profile</div></div>
+          <div class="card-body" style="display:flex;flex-direction:column;gap:16px;">
+            <div style="display:flex;align-items:center;gap:14px;">
+              <div class="avatar" style="width:52px;height:52px;font-size:18px;font-weight:700;background:linear-gradient(135deg,#6e6eff,#a78bfa);border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;flex-shrink:0;">JD</div>
+              <div>
+                <div style="font-size:14px;font-weight:600;color:var(--text-primary);">Jamie Doe</div>
+                <div style="font-size:12px;color:var(--text-muted);">Product Manager · jamie@company.com</div>
+              </div>
+              <button class="btn btn-secondary btn-sm" style="margin-left:auto;" onclick="AgilePM.showToast('Photo updated','Profile photo changed','success')">Change photo</button>
+            </div>
+            <div class="two-col" style="gap:12px">
+              <div class="input-group">
+                <label class="input-label">First name</label>
+                <input class="input" type="text" value="Jamie" />
+              </div>
+              <div class="input-group">
+                <label class="input-label">Last name</label>
+                <input class="input" type="text" value="Doe" />
+              </div>
+            </div>
+            <div class="input-group">
+              <label class="input-label">Email</label>
+              <input class="input" type="email" value="jamie@company.com" />
+            </div>
+            <div class="input-group">
+              <label class="input-label">Role / Title</label>
+              <input class="input" type="text" value="Product Manager" />
+            </div>
+            <div style="display:flex;justify-content:flex-end;">
+              <button class="btn btn-primary" onclick="AgilePM.showToast('Profile saved','Your changes have been saved','success')">Save changes</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Notifications -->
+        <div class="card">
+          <div class="card-header"><div class="card-title">Notifications</div></div>
+          <div class="card-body" style="display:flex;flex-direction:column;gap:14px;">
+            ${[
+              ['Task assigned to you', true],
+              ['Sprint started or ended', true],
+              ['Comment on your tasks', true],
+              ['Daily digest email', false],
+              ['Weekly report email', true],
+              ['Blocker alerts', true],
+            ].map(([label, checked]) => `
+              <label style="display:flex;align-items:center;justify-content:space-between;cursor:pointer;">
+                <span style="font-size:13.5px;color:var(--text-primary);">${label}</span>
+                <input type="checkbox" ${checked ? 'checked' : ''} style="accent-color:var(--accent);width:16px;height:16px;" onchange="AgilePM.showToast('Preference saved','Notification setting updated','success')" />
+              </label>
+            `).join('')}
+          </div>
+        </div>
+      </div>
+
+      <!-- Right col -->
+      <div style="display:flex;flex-direction:column;gap:16px;">
+
+        <!-- Workspace -->
+        <div class="card">
+          <div class="card-header"><div class="card-title">Workspace</div></div>
+          <div class="card-body" style="display:flex;flex-direction:column;gap:14px;">
+            <div class="input-group">
+              <label class="input-label">Workspace name</label>
+              <input class="input" type="text" value="Acme Corp" />
+            </div>
+            <div class="input-group">
+              <label class="input-label">Default sprint length</label>
+              <select class="input">
+                <option>1 week</option>
+                <option selected>2 weeks</option>
+                <option>3 weeks</option>
+                <option>4 weeks</option>
+              </select>
+            </div>
+            <div class="input-group">
+              <label class="input-label">Default estimation</label>
+              <select class="input">
+                <option selected>Story Points</option>
+                <option>T-shirt sizes</option>
+                <option>Hours</option>
+              </select>
+            </div>
+            <button class="btn btn-primary" onclick="AgilePM.showToast('Workspace saved','Workspace settings updated','success')">Save workspace</button>
+          </div>
+        </div>
+
+        <!-- Danger Zone -->
+        <div class="card" style="border-color:rgba(242,95,92,0.2);">
+          <div class="card-header" style="border-color:rgba(242,95,92,0.15);">
+            <div class="card-title" style="color:var(--red);">Danger Zone</div>
+          </div>
+          <div class="card-body" style="display:flex;flex-direction:column;gap:12px;">
+            <div>
+              <div style="font-size:13px;font-weight:500;color:var(--text-primary);margin-bottom:3px;">Delete account</div>
+              <div style="font-size:12px;color:var(--text-muted);margin-bottom:10px;">Permanently delete your account and all data. This cannot be undone.</div>
+              <button class="btn" style="background:var(--red-dim);color:var(--red);border-color:rgba(242,95,92,0.3);"
+                onclick="AgilePM.showToast('Action cancelled','Account deletion cancelled','info')">
+                Delete account
+              </button>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="../components/components.js"></script>
+<script>
+AgilePM.initShell({ title: 'Settings', breadcrumb: [{ label: 'Insights' }, { label: 'Settings' }] });
+</script>
+</body>
+</html>

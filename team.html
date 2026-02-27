@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Team — AgilePM</title>
+  <link rel="stylesheet" href="../styles.css" />
+</head>
+<body>
+<div class="app-shell" id="app-shell">
+  <div class="page-body" id="page-content">
+    <div class="page-header fade-up">
+      <div class="page-header-left">
+        <h1 class="page-title">Team</h1>
+        <p class="page-subtitle">5 members across 3 time zones</p>
+      </div>
+      <div class="page-header-right">
+        <button class="btn btn-primary" onclick="AgilePM.showToast('Invite sent','Team invitation email dispatched','success')">Invite Member</button>
+      </div>
+    </div>
+
+    <div class="stats-grid fade-up fade-up-1" id="team-stats"></div>
+
+    <div class="card fade-up fade-up-2">
+      <div class="card-header">
+        <div class="card-title">Members</div>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Member</th>
+              <th>Role</th>
+              <th>Projects</th>
+              <th>Open Tasks</th>
+              <th>Status</th>
+              <th>Joined</th>
+            </tr>
+          </thead>
+          <tbody id="team-body"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="../components/components.js"></script>
+<script>
+AgilePM.initShell({ title: 'Team', breadcrumb: [{ label: 'Insights' }, { label: 'Team' }] });
+
+document.getElementById('team-stats').innerHTML = [
+  { value:'5',  label:'Members',          icon: AgilePM.icons.team,     colorClass:'accent', trend:null },
+  { value:'3',  label:'Time Zones',       icon: AgilePM.icons.dashboard,colorClass:'blue',   trend:null },
+  { value:'28', label:'Avg Tasks / Member',icon:AgilePM.icons.tasks,    colorClass:'yellow', trend:null },
+  { value:'94%',label:'Sprint Completion',icon: AgilePM.icons.sprints,  colorClass:'green',  trend:6, trendLabel:'vs last sprint' },
+].map((s,i) => AgilePM.buildStatCard({ ...s, delay:`fade-up-${i+1}` })).join('');
+
+const members = [
+  { name:'Jamie Doe',   initials:'JD', color:'#6e6eff', role:'Product Manager',   projects:['Atlas','Mobile'], tasks:8,  status:'active',  joined:'Jan 2023' },
+  { name:'Alex Kim',    initials:'AK', color:'#3dd68c', role:'Senior Engineer',    projects:['Mobile','Data'],  tasks:12, status:'active',  joined:'Mar 2023' },
+  { name:'Sam Patel',   initials:'SP', color:'#f5a623', role:'Frontend Engineer',  projects:['Atlas','Design'], tasks:9,  status:'active',  joined:'Jun 2023' },
+  { name:'Morgan Reed', initials:'MR', color:'#f25f5c', role:'Backend Engineer',   projects:['Data','Infra'],   tasks:11, status:'active',  joined:'Sep 2023' },
+  { name:'Taylor Ng',   initials:'TN', color:'#58a6ff', role:'DevOps Engineer',    projects:['Infra','Atlas'],  tasks:6,  status:'away',    joined:'Nov 2023' },
+];
+
+document.getElementById('team-body').innerHTML = members.map(m => `
+  <tr>
+    <td>
+      <div style="display:flex;align-items:center;gap:10px;">
+        <div class="avatar" style="width:32px;height:32px;font-size:11px;font-weight:700;background:${m.color};border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;flex-shrink:0;">${m.initials}</div>
+        <div>
+          <div class="primary">${m.name}</div>
+          <div style="font-size:11px;color:var(--text-muted);margin-top:1px;">${m.initials.toLowerCase()}@company.com</div>
+        </div>
+      </div>
+    </td>
+    <td>${m.role}</td>
+    <td>
+      <div style="display:flex;gap:4px;flex-wrap:wrap;">
+        ${m.projects.map(p => `<span style="font-size:11px;padding:2px 7px;border-radius:99px;background:var(--bg-active);color:var(--text-muted);border:1px solid var(--border-subtle);">${p}</span>`).join('')}
+      </div>
+    </td>
+    <td class="primary">${m.tasks}</td>
+    <td>${AgilePM.buildBadge(m.status === 'active' ? 'Active' : 'Away', m.status === 'active' ? 'green' : 'yellow')}</td>
+    <td style="color:var(--text-muted);font-size:12px;">${m.joined}</td>
+  </tr>
+`).join('');
+</script>
+</body>
+</html>

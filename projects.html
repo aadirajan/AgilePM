@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Projects — AgilePM</title>
+  <link rel="stylesheet" href="../styles.css" />
+</head>
+<body>
+
+<div class="app-shell" id="app-shell">
+  <div class="page-body" id="page-content">
+    <div class="page-header fade-up">
+      <div class="page-header-left">
+        <h1 class="page-title">Projects</h1>
+        <p class="page-subtitle">5 active projects across 3 teams</p>
+      </div>
+      <div class="page-header-right">
+        <button class="btn btn-secondary">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="6" x2="20" y2="6"/><line x1="4" y1="12" x2="14" y2="12"/><line x1="4" y1="18" x2="10" y2="18"/></svg>
+          Filter
+        </button>
+        <button class="btn btn-primary" id="new-project-btn">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          New Project
+        </button>
+      </div>
+    </div>
+
+    <!-- Stat Row -->
+    <div class="stats-grid fade-up fade-up-1" id="proj-stats"></div>
+
+    <!-- Projects Grid -->
+    <div class="project-grid fade-up fade-up-2" id="project-grid"></div>
+  </div>
+</div>
+
+<script src="../components/components.js"></script>
+<script>
+AgilePM.initShell({
+  title: 'Projects',
+  breadcrumb: [
+    { label: 'Workspace' },
+    { label: 'Projects' }
+  ]
+});
+
+// Stats
+const stats = [
+  { value:'5',  label:'Active Projects',   icon: AgilePM.icons.projects, colorClass:'accent', trend: 20, trendLabel:'this quarter' },
+  { value:'127',label:'Open Issues',        icon: AgilePM.icons.tasks,    colorClass:'yellow', trend:-8, trendLabel:'vs last week' },
+  { value:'3',  label:'Due This Sprint',    icon: AgilePM.icons.sprints,  colorClass:'red',    trend: null },
+  { value:'18', label:'Team Members',       icon: AgilePM.icons.team,     colorClass:'green',  trend: null },
+];
+document.getElementById('proj-stats').innerHTML = stats.map((s,i) =>
+  AgilePM.buildStatCard({ ...s, delay:`fade-up-${i+1}` })
+).join('');
+
+// Projects
+const projects = [
+  {
+    id:'atlas', name:'Atlas Platform', desc:'Core SaaS product — backend APIs, admin dashboard, and integrations layer.',
+    status:'active', color:'#6e6eff', tasks:48, sprints:14, progress:68,
+    members:[{i:'JD',c:'#6e6eff'},{i:'AK',c:'#3dd68c'},{i:'SP',c:'#f5a623'}]
+  },
+  {
+    id:'mobile', name:'Mobile App v2', desc:'Complete rebuild of the iOS & Android apps with React Native and new design system.',
+    status:'active', color:'#3dd68c', tasks:31, sprints:6, progress:42,
+    members:[{i:'MR',c:'#f25f5c'},{i:'JD',c:'#6e6eff'}]
+  },
+  {
+    id:'data', name:'Data Pipeline', desc:'Real-time event ingestion, Kafka streaming, and analytical warehouse connectors.',
+    status:'active', color:'#b57bff', tasks:19, sprints:9, progress:81,
+    members:[{i:'AK',c:'#3dd68c'},{i:'SP',c:'#f5a623'},{i:'TN',c:'#58a6ff'}]
+  },
+  {
+    id:'design', name:'Design System', desc:'Tokens, components, and documentation for a unified design language across products.',
+    status:'active', color:'#f5a623', tasks:22, sprints:3, progress:35,
+    members:[{i:'JD',c:'#6e6eff'},{i:'MR',c:'#f25f5c'}]
+  },
+  {
+    id:'infra', name:'Infra Revamp', desc:'Kubernetes migration, CI/CD pipeline improvements, and observability stack rollout.',
+    status:'active', color:'#f25f5c', tasks:14, sprints:2, progress:15,
+    members:[{i:'SP',c:'#f5a623'},{i:'TN',c:'#58a6ff'}]
+  },
+];
+
+const statusBadge = s => {
+  const map = { active:'green', paused:'yellow', archived:'muted' };
+  return AgilePM.buildBadge(s.charAt(0).toUpperCase()+s.slice(1), map[s] || 'muted');
+};
+
+document.getElementById('project-grid').innerHTML = projects.map(p => `
+  <div class="project-card" onclick="window.location='sprints.html'">
+    <div class="project-card-stripe" style="background:${p.color}"></div>
+    <div class="project-card-header">
+      <div class="project-name">${p.name}</div>
+      ${statusBadge(p.status)}
+    </div>
+    <p class="project-desc">${p.desc}</p>
+    <div class="project-stats">
+      <span class="project-stat"><strong>${p.tasks}</strong> tasks</span>
+      <span class="project-stat"><strong>${p.sprints}</strong> sprints</span>
+    </div>
+    <div class="project-progress-wrap">
+      <div class="project-progress-label">
+        <span>Progress</span>
+        <span>${p.progress}%</span>
+      </div>
+      ${AgilePM.buildProgressBar(p.progress)}
+    </div>
+    <div class="project-members">
+      ${p.members.map(m => `<div class="member-avatar" style="background:${m.c}">${m.i}</div>`).join('')}
+    </div>
+  </div>
+`).join('');
+
+// New project modal
+document.getElementById('new-project-btn').addEventListener('click', () => {
+  const body = `
+    <div class="input-group">
+      <label class="input-label">Project Name</label>
+      <input class="input" id="proj-name" type="text" placeholder="e.g. Payments v3" />
+    </div>
+    <div class="input-group">
+      <label class="input-label">Description</label>
+      <textarea class="input" rows="3" placeholder="What is this project about?" style="resize:vertical"></textarea>
+    </div>
+    <div class="two-col" style="gap:12px">
+      <div class="input-group">
+        <label class="input-label">Lead</label>
+        <select class="input">
+          <option>Jamie Doe</option>
+          <option>Alex Kim</option>
+          <option>Sam Patel</option>
+        </select>
+      </div>
+      <div class="input-group">
+        <label class="input-label">Start Date</label>
+        <input class="input" type="date" />
+      </div>
+    </div>
+  `;
+  const footer = `
+    <button class="btn btn-ghost" id="cancel-proj">Cancel</button>
+    <button class="btn btn-primary" id="create-proj">Create Project</button>
+  `;
+  const { close } = AgilePM.createModal('New Project', body, footer);
+  setTimeout(() => {
+    document.getElementById('cancel-proj')?.addEventListener('click', close);
+    document.getElementById('create-proj')?.addEventListener('click', () => {
+      const name = document.getElementById('proj-name')?.value.trim();
+      if (!name) return;
+      close();
+      AgilePM.showToast('Project created', name, 'success');
+    });
+  }, 50);
+});
+</script>
+</body>
+</html>

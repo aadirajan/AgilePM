@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Analytics — AgilePM</title>
+  <link rel="stylesheet" href="../styles.css" />
+</head>
+<body>
+<div class="app-shell" id="app-shell">
+  <div class="page-body" id="page-content">
+    <div class="page-header fade-up">
+      <div class="page-header-left">
+        <h1 class="page-title">Analytics</h1>
+        <p class="page-subtitle">Team performance and sprint insights</p>
+      </div>
+      <div class="page-header-right">
+        <select class="input btn-sm" style="padding:6px 10px;">
+          <option>Last 6 sprints</option>
+          <option>Last 3 months</option>
+          <option>This quarter</option>
+        </select>
+        <button class="btn btn-secondary" onclick="AgilePM.showToast('Report exported','PDF ready to download','success')">Export PDF</button>
+      </div>
+    </div>
+
+    <div class="stats-grid fade-up fade-up-1" id="analytics-stats"></div>
+
+    <div class="two-col fade-up fade-up-2" style="margin-bottom:20px;">
+      <!-- Velocity -->
+      <div class="card">
+        <div class="card-header">
+          <div>
+            <div class="card-title">Velocity Trend</div>
+            <div class="card-subtitle">Story points completed per sprint</div>
+          </div>
+          <span style="font-size:12px;padding:2px 8px;border-radius:99px;background:var(--green-dim);color:var(--green);font-weight:600;">↑ 18% avg</span>
+        </div>
+        <div class="card-body">
+          <div class="chart-placeholder" id="velocity-chart" style="height:160px;"></div>
+        </div>
+      </div>
+
+      <!-- Cycle Time -->
+      <div class="card">
+        <div class="card-header">
+          <div>
+            <div class="card-title">Cycle Time</div>
+            <div class="card-subtitle">Avg days from start → done</div>
+          </div>
+          <span style="font-size:12px;padding:2px 8px;border-radius:99px;background:var(--blue-dim);color:var(--blue);font-weight:600;">3.2d avg</span>
+        </div>
+        <div class="card-body">
+          <div class="chart-placeholder" id="cycle-chart" style="height:160px;"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="two-col fade-up fade-up-3">
+      <!-- Task distribution -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">Task Distribution</div>
+        </div>
+        <div class="card-body" id="task-dist"></div>
+      </div>
+
+      <!-- Team leaderboard -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">Team Contributions</div>
+          <div class="card-subtitle">Tasks completed this sprint</div>
+        </div>
+        <div class="card-body" style="padding:0 20px;" id="leaderboard"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="../components/components.js"></script>
+<script>
+AgilePM.initShell({ title: 'Analytics', breadcrumb: [{ label: 'Insights' }, { label: 'Analytics' }] });
+
+document.getElementById('analytics-stats').innerHTML = [
+  { value:'68',  label:'Avg Velocity (pts)', icon: AgilePM.icons.sprints,  colorClass:'accent', trend:18, trendLabel:'vs S13' },
+  { value:'3.2d',label:'Avg Cycle Time',     icon: AgilePM.icons.dashboard,colorClass:'blue',   trend:-8, trendLabel:'improvement' },
+  { value:'94%', label:'Sprint Completion',  icon: AgilePM.icons.tasks,    colorClass:'green',  trend:6,  trendLabel:'vs S13' },
+  { value:'1.4', label:'Bug Escape Rate',    icon: AgilePM.icons.projects, colorClass:'yellow', trend:null },
+].map((s,i) => AgilePM.buildStatCard({ ...s, delay:`fade-up-${i+1}` })).join('');
+
+// Velocity chart
+const sprintLabels   = ['S09','S10','S11','S12','S13','S14'];
+const velocityValues = [42, 38, 55, 48, 61, 71];
+const maxV = Math.max(...velocityValues);
+document.getElementById('velocity-chart').innerHTML = sprintLabels.map((s,i) => `
+  <div class="bar-group">
+    <div class="bar" style="height:${(velocityValues[i]/maxV)*140}px" data-tooltip="${velocityValues[i]} pts"></div>
+    <div class="bar-label">${s}</div>
+  </div>
+`).join('');
+
+// Cycle time chart (use different color)
+const ctValues = [5.1, 4.3, 3.9, 3.5, 3.3, 3.2];
+const maxCT = Math.max(...ctValues);
+document.getElementById('cycle-chart').innerHTML = sprintLabels.map((s,i) => `
+  <div class="bar-group">
+    <div class="bar" style="height:${(ctValues[i]/maxCT)*140}px;background:var(--blue-dim);border-color:rgba(88,166,255,0.2);" 
+         onmouseover="this.style.background='var(--blue)'" onmouseout="this.style.background='var(--blue-dim)'"
+         data-tooltip="${ctValues[i]}d avg"></div>
+    <div class="bar-label">${s}</div>
+  </div>
+`).join('');
+
+// Task distribution
+const dist = [
+  { label:'Feature', count:48, pct:52, color:'var(--accent)' },
+  { label:'Bug Fix',  count:22, pct:24, color:'var(--red)' },
+  { label:'Tech Debt',count:14, pct:15, color:'var(--yellow)' },
+  { label:'Docs',     count:8,  pct:9,  color:'var(--green)' },
+];
+document.getElementById('task-dist').innerHTML = dist.map(d => `
+  <div style="margin-bottom:16px;">
+    <div style="display:flex;justify-content:space-between;margin-bottom:6px;">
+      <div style="display:flex;align-items:center;gap:8px;">
+        <div style="width:8px;height:8px;border-radius:50%;background:${d.color};flex-shrink:0;"></div>
+        <span style="font-size:13px;font-weight:500;color:var(--text-primary);">${d.label}</span>
+      </div>
+      <div style="font-size:12px;color:var(--text-muted);">${d.count} tasks · ${d.pct}%</div>
+    </div>
+    <div class="progress-bar" style="height:8px;">
+      <div class="progress-fill" style="width:${d.pct}%;background:${d.color};"></div>
+    </div>
+  </div>
+`).join('');
+
+// Leaderboard
+const team = [
+  { name:'Jamie Doe',  initials:'JD', color:'#6e6eff', tasks:18, pts:42 },
+  { name:'Alex Kim',   initials:'AK', color:'#3dd68c', tasks:15, pts:38 },
+  { name:'Sam Patel',  initials:'SP', color:'#f5a623', tasks:12, pts:29 },
+  { name:'Morgan Reed',initials:'MR', color:'#f25f5c', tasks:10, pts:22 },
+  { name:'Taylor Ng',  initials:'TN', color:'#58a6ff', tasks:7,  pts:16 },
+];
+const maxTasks = Math.max(...team.map(t => t.tasks));
+document.getElementById('leaderboard').innerHTML = team.map((m,i) => `
+  <div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--border-subtle);">
+    <span style="font-size:11px;font-weight:700;color:var(--text-muted);width:14px;text-align:center;">${i+1}</span>
+    <div class="avatar" style="width:28px;height:28px;font-size:10px;background:${m.color};border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;flex-shrink:0;">${m.initials}</div>
+    <div style="flex:1;min-width:0;">
+      <div style="font-size:13px;font-weight:500;color:var(--text-primary);">${m.name}</div>
+      <div style="margin-top:4px;" >${AgilePM.buildProgressBar(Math.round(m.tasks/maxTasks*100))}</div>
+    </div>
+    <div style="text-align:right;flex-shrink:0;">
+      <div style="font-size:13px;font-weight:700;color:var(--text-primary);">${m.tasks}</div>
+      <div style="font-size:10px;color:var(--text-muted);">${m.pts} pts</div>
+    </div>
+  </div>
+`).join('');
+</script>
+</body>
+</html>

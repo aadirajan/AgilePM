@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sprints — AgilePM</title>
+  <link rel="stylesheet" href="../styles.css" />
+</head>
+<body>
+
+<div class="app-shell" id="app-shell">
+  <div class="page-body" id="page-content">
+    <div class="page-header fade-up">
+      <div class="page-header-left">
+        <h1 class="page-title">Sprint Board</h1>
+        <p class="page-subtitle">
+          <span class="live-dot" style="margin-right:6px;"></span>
+          Sprint 14 · Atlas Platform · 9 days left
+        </p>
+      </div>
+      <div class="page-header-right">
+        <select class="input btn-sm" style="padding:6px 10px;min-width:160px;">
+          <option>Atlas Platform — S14</option>
+          <option>Mobile App v2 — S06</option>
+          <option>Data Pipeline — S09</option>
+        </select>
+        <button class="btn btn-primary" onclick="AgilePM.openNewTaskModal()">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Add Task
+        </button>
+      </div>
+    </div>
+
+    <!-- Sprint meta bar -->
+    <div class="card fade-up fade-up-1" style="margin-bottom:20px;">
+      <div class="card-body" style="padding:14px 20px;">
+        <div style="display:flex;align-items:center;gap:24px;flex-wrap:wrap;">
+          <div>
+            <div style="font-size:11px;color:var(--text-muted);margin-bottom:4px;">Sprint Goal</div>
+            <div style="font-size:13px;font-weight:500;color:var(--text-primary);">Ship auth redesign + pipeline alerting</div>
+          </div>
+          <div style="width:1px;height:32px;background:var(--border-subtle);flex-shrink:0;"></div>
+          <div>
+            <div style="font-size:11px;color:var(--text-muted);margin-bottom:4px;">Story Points</div>
+            <div style="font-size:13px;font-weight:700;color:var(--text-primary);">48 <span style="font-weight:400;color:var(--text-muted)">/ 72</span></div>
+          </div>
+          <div style="flex:1;min-width:140px;">
+            ${(function(){ 
+              // dynamically computed
+              return '<div style="font-size:11px;color:var(--text-muted);margin-bottom:6px;">Burndown</div><div class="progress-bar" style="height:6px;"><div class="progress-fill green" style="width:68%"></div></div>';
+            })()}
+          </div>
+          <div style="display:flex;gap:6px;">
+            <span style="font-size:11px;padding:3px 8px;border-radius:99px;background:var(--blue-dim);color:var(--blue);font-weight:600;">Feb 12</span>
+            <span style="font-size:11px;color:var(--text-muted);padding:3px 0;">→</span>
+            <span style="font-size:11px;padding:3px 8px;border-radius:99px;background:var(--yellow-dim);color:var(--yellow);font-weight:600;">Feb 26</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Kanban Board -->
+    <div class="sprint-cols fade-up fade-up-2" id="kanban-board"></div>
+  </div>
+</div>
+
+<script src="../components/components.js"></script>
+<script>
+AgilePM.initShell({
+  title: 'Sprints',
+  breadcrumb: [{ label: 'Workspace' }, { label: 'Sprints' }]
+});
+
+const avatarColors = { JD:'#6e6eff', AK:'#3dd68c', SP:'#f5a623', MR:'#f25f5c', TN:'#58a6ff' };
+
+const columns = [
+  {
+    id: 'todo', title: 'To Do', dotColor: 'var(--text-muted)',
+    tasks: [
+      { id:'AT-143', title:'Set up feature flag service',             assignee:'TN', priority:'high' },
+      { id:'AT-144', title:'Migrate auth to PKCE flow',               assignee:'JD', priority:'high' },
+      { id:'MB-092', title:'Build offline queue for mutations',        assignee:'AK', priority:'medium' },
+      { id:'DP-035', title:'Write Kafka schema registry docs',         assignee:'MR', priority:'low' },
+      { id:'AT-145', title:'Update Stripe webhook handlers',           assignee:'SP', priority:'medium' },
+      { id:'MB-093', title:'Add haptic feedback to gesture actions',   assignee:'AK', priority:'low' },
+      { id:'AT-146', title:'Implement rate limiting middleware',        assignee:'TN', priority:'high' },
+    ]
+  },
+  {
+    id: 'progress', title: 'In Progress', dotColor: 'var(--blue)',
+    tasks: [
+      { id:'AT-142', title:'Design token system refresh',              assignee:'JD', priority:'high' },
+      { id:'MB-089', title:'Push notification deep linking',           assignee:'AK', priority:'medium' },
+      { id:'MB-091', title:'Offline mode sync logic',                  assignee:'JD', priority:'high' },
+      { id:'DP-033', title:'Kafka consumer lag alerting',              assignee:'MR', priority:'medium' },
+      { id:'AT-141', title:'Add multi-workspace support',              assignee:'SP', priority:'medium' },
+    ]
+  },
+  {
+    id: 'review', title: 'In Review', dotColor: 'var(--yellow)',
+    tasks: [
+      { id:'AT-140', title:'SSO integration testing',                  assignee:'TN', priority:'high' },
+      { id:'MB-088', title:'App store screenshots update',             assignee:'JD', priority:'low' },
+      { id:'DP-032', title:'S3 sink connector config',                 assignee:'MR', priority:'medium' },
+    ]
+  },
+  {
+    id: 'done', title: 'Done', dotColor: 'var(--green)',
+    tasks: [
+      { id:'AT-138', title:'Redesign onboarding flow',                 assignee:'SP', priority:'high' },
+      { id:'AT-139', title:'Fix session expiry edge case',             assignee:'JD', priority:'medium' },
+      { id:'MB-086', title:'Dark mode implementation',                 assignee:'AK', priority:'high' },
+      { id:'MB-087', title:'Biometric login support',                  assignee:'JD', priority:'high' },
+      { id:'DP-030', title:'Debezium connector setup',                 assignee:'MR', priority:'medium' },
+      { id:'DP-031', title:'Schema evolution tests',                   assignee:'TN', priority:'low' },
+      { id:'AT-136', title:'Export CSV billing reports',               assignee:'SP', priority:'medium' },
+      { id:'AT-137', title:'GDPR data deletion endpoint',              assignee:'JD', priority:'high' },
+      { id:'MB-085', title:'Performance profiling on scroll',          assignee:'AK', priority:'medium' },
+      { id:'AT-135', title:'Two-factor auth recovery codes',           assignee:'SP', priority:'high' },
+      { id:'DP-029', title:'Alertmanager webhook integration',         assignee:'MR', priority:'medium' },
+      { id:'AT-134', title:'Admin audit log viewer',                   assignee:'TN', priority:'low' },
+    ]
+  }
+];
+
+const priorityStyle = { high:'var(--red)', medium:'var(--yellow)', low:'var(--green)' };
+const priorityLabel = { high:'High', medium:'Med', low:'Low' };
+
+document.getElementById('kanban-board').innerHTML = columns.map(col => `
+  <div class="sprint-col">
+    <div class="sprint-col-header">
+      <div class="sprint-col-title">
+        <div class="col-dot" style="background:${col.dotColor}"></div>
+        ${col.title}
+      </div>
+      <span class="sprint-col-count">${col.tasks.length}</span>
+    </div>
+    <div class="sprint-col-body">
+      ${col.tasks.map(t => `
+        <div class="task-card" onclick="AgilePM.showToast('${t.id}','${t.title}','info')">
+          <div class="task-card-title">${t.title}</div>
+          <div class="task-card-meta">
+            <span class="task-id">${t.id}</span>
+            <div style="display:flex;align-items:center;gap:5px;">
+              <span style="font-size:9px;font-weight:700;padding:1px 5px;border-radius:99px;background:${priorityStyle[t.priority]}22;color:${priorityStyle[t.priority]};">${priorityLabel[t.priority]}</span>
+              <div class="task-assignee" style="background:${avatarColors[t.assignee] || '#888'}">${t.assignee}</div>
+            </div>
+          </div>
+        </div>
+      `).join('')}
+      <button class="btn btn-ghost btn-sm" style="width:100%;justify-content:center;margin-top:4px;border:1px dashed var(--border-subtle);" onclick="AgilePM.openNewTaskModal()">
+        + Add task
+      </button>
+    </div>
+  </div>
+`).join('');
+</script>
+</body>
+</html>
